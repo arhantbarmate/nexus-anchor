@@ -1,4 +1,4 @@
-![Nexus Protocol CI](https://github.com/arhantbarmate/Nexus_Protocol/actions/workflows/ci.yml/badge.svg)
+![Nexus Protocol CI](https://github.com/arhantbarmate/nexus-anchor/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Arbitrum](https://img.shields.io/badge/Arbitrum-Sepolia-blue.svg)
 ![Rust](https://img.shields.io/badge/rust-1.93.0-orange.svg)

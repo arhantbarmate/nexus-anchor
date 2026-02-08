@@ -1,12 +1,14 @@
 # Contributing to Nexus Protocol
 
-Thank you for your interest in contributing to Nexus Protocol! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to Nexus Protocol!
+This document provides guidelines for contributing to the project.
 
 ## 🎯 How to Contribute
 
 ### Reporting Bugs
 
 If you find a bug, please open an issue with:
+
 - **Clear title** describing the issue
 - **Steps to reproduce** the problem
 - **Expected vs. actual behavior**
@@ -16,6 +18,7 @@ If you find a bug, please open an issue with:
 ### Suggesting Features
 
 We welcome feature suggestions! Please:
+
 - Check existing issues first to avoid duplicates
 - Clearly describe the use case and benefits
 - Explain how it fits with Nexus Protocol's vision
@@ -76,16 +79,19 @@ pylint your_file.py
 ## 🧪 Testing Requirements
 
 ### Smart Contract Tests
+
 - All public functions must have unit tests
 - Test both success and failure cases
 - Verify gas usage remains reasonable
 
 ### Firmware Tests
+
 - Test on actual ESP32-S3 hardware
 - Verify Keccak-256 output matches test vectors
 - Test counter overflow/replay scenarios
 
 ### Integration Tests
+
 - End-to-end receipt generation and verification
 - Test against deployed testnet contracts
 - Verify all error cases
@@ -103,6 +109,7 @@ Fixes #123
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -111,7 +118,8 @@ Fixes #123
 - `chore`: Maintenance tasks
 
 **Example:**
-```
+
+```text
 feat(verifier): Add batch receipt verification
 
 Implements optimized batch verification for multiple receipts

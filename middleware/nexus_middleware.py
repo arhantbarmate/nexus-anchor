@@ -28,7 +28,9 @@ RPC_URL = os.getenv("RPC_URL")
 CHAIN_ID = 421614  # Arbitrum Sepolia
 
 # NexusAnchor Contract (VERIFIED DEPLOYMENT)
-CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "0xbd4548598e968a4eafd06193bcaa30b8f9b52a76")
+CONTRACT_ADDRESS = os.getenv(
+    "CONTRACT_ADDRESS", "0xbd4548598e968a4eafd06193bcaa30b8f9b52a76"
+)
 
 # SECURITY FIX: Secure Private Key Handling
 # Pulled from .env or environment variable for grant-level security.
@@ -39,7 +41,9 @@ PRIVATE_KEY = os.getenv("NEXUS_ANCHOR_KEY")
 # ============================================================================
 
 if not PRIVATE_KEY:
-    raise ValueError("CRITICAL: NEXUS_ANCHOR_KEY not found in environment or .env file.")
+    raise ValueError(
+        "CRITICAL: NEXUS_ANCHOR_KEY not found in environment or .env file."
+    )
 
 if not RPC_URL:
     raise ValueError("CRITICAL: RPC_URL not found in .env file.")
@@ -59,33 +63,35 @@ CONTRACT_ABI = [
         "name": "verifyExecution",
         "inputs": [{"name": "receipt_digest", "type": "bytes32"}],
         "outputs": [],
-        "stateMutability": "nonpayable"
+        "stateMutability": "nonpayable",
     },
     {
         "type": "function",
         "name": "getVerifiedCount",
         "inputs": [],
         "outputs": [{"name": "", "type": "uint256"}],
-        "stateMutability": "view"
-    }
+        "stateMutability": "view",
+    },
 ]
+
 
 class NexusMiddleware:
     def __init__(self):
         self.w3 = Web3(Web3.HTTPProvider(RPC_URL))
         if not self.w3.is_connected():
-            raise ConnectionError(f"❌ Failed to reach Arbitrum Sepolia (Chain ID {CHAIN_ID})")
-        
+            raise ConnectionError(
+                f"❌ Failed to reach Arbitrum Sepolia (Chain ID {CHAIN_ID})"
+            )
+
         self.account = Account.from_key(PRIVATE_KEY)
         self.contract = self.w3.eth.contract(
-            address=Web3.to_checksum_address(CONTRACT_ADDRESS),
-            abi=CONTRACT_ABI
+            address=Web3.to_checksum_address(CONTRACT_ADDRESS), abi=CONTRACT_ABI
         )
 
         # SECURITY FIX #2: State-aware replay protection
         # Maps hardware_identity -> last_seen_counter
         self.last_counters = {}
-        
+
         # INVARIANT CHECK: Domain Separation
         # Expected ESP32 Tag: "NEXUS_OHR_V1" (12 bytes, ASCII)
         self.domain_tag = "NEXUS_OHR_V1"
@@ -100,21 +106,25 @@ class NexusMiddleware:
         This prevents replay of old valid hardware receipts.
         """
         last_seen = self.last_counters.get(hardware_identity, -1)
-        
+
         if new_counter <= last_seen:
-            raise ValueError(f"❌ REPLAY DETECTED: Counter {new_counter} <= last {last_seen}")
-        
+            raise ValueError(
+                f"❌ REPLAY DETECTED: Counter {new_counter} <= last {last_seen}"
+            )
+
         self.last_counters[hardware_identity] = new_counter
         return True
 
-    def anchor_receipt(self, receipt_digest_hex, hardware_identity_hex=None, counter=None):
+    def anchor_receipt(
+        self, receipt_digest_hex, hardware_identity_hex=None, counter=None
+    ):
         """
         Anchors the hardware attestation to Arbitrum.
         """
         # Normalize digest
-        if not receipt_digest_hex.startswith('0x'):
-            receipt_digest_hex = '0x' + receipt_digest_hex
-        
+        if not receipt_digest_hex.startswith("0x"):
+            receipt_digest_hex = "0x" + receipt_digest_hex
+
         digest_bytes = Web3.to_bytes(hexstr=receipt_digest_hex)
 
         # Enforce Replay Protection if identity is provided
@@ -123,36 +133,41 @@ class NexusMiddleware:
             self.verify_counter_progression(counter, hardware_identity_hex)
 
         # Build transaction with 'pending' nonce for better throughput
-        nonce = self.w3.eth.get_transaction_count(self.account.address, 'pending')
-        
+        nonce = self.w3.eth.get_transaction_count(self.account.address, "pending")
+
         # Arbitrum Dynamic Gas estimation
-        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_fee = int(base_fee * 1.5) # 50% buffer
-        
-        tx = self.contract.functions.verifyExecution(digest_bytes).build_transaction({
-            'chainId': CHAIN_ID,
-            'from': self.account.address,
-            'nonce': nonce,
-            'gas': 120000, # Stylus verification buffer
-            'maxFeePerGas': max_fee,
-            'maxPriorityFeePerGas': self.w3.to_wei('0.01', 'gwei'),
-        })
+        base_fee = self.w3.eth.get_block("latest")["baseFeePerGas"]
+        max_fee = int(base_fee * 1.5)  # 50% buffer
+
+        tx = self.contract.functions.verifyExecution(digest_bytes).build_transaction(
+            {
+                "chainId": CHAIN_ID,
+                "from": self.account.address,
+                "nonce": nonce,
+                "gas": 120000,  # Stylus verification buffer
+                "maxFeePerGas": max_fee,
+                "maxPriorityFeePerGas": self.w3.to_wei("0.01", "gwei"),
+            }
+        )
 
         signed_tx = self.account.sign_transaction(tx)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        
+
         print(f"🚀 Anchoring Digest: {receipt_digest_hex}")
-        
+
         try:
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-            if receipt['status'] == 1:
-                print(f"✅ Success! Block: {receipt['blockNumber']} | Gas: {receipt['gasUsed']}")
+            if receipt["status"] == 1:
+                print(
+                    f"✅ Success! Block: {receipt['blockNumber']} | Gas: {receipt['gasUsed']}"
+                )
                 return self.w3.to_hex(tx_hash)
             else:
                 raise Exception("Transaction Reverted on Arbitrum.")
         except Exception as e:
             print(f"❌ Tx Failed: {str(e)}")
             raise
+
 
 if __name__ == "__main__":
     nm = NexusMiddleware()

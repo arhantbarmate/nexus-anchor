@@ -3,9 +3,9 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use stylus_sdk::{
-    alloy_primitives::{FixedBytes, Uint, keccak256},
+    alloy_primitives::{keccak256, FixedBytes, Uint},
     prelude::*,
-    storage::{StorageMap, StorageBool, StorageU64},
+    storage::{StorageBool, StorageMap, StorageU64},
 };
 
 type U64 = Uint<64, 1>;

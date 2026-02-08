@@ -1,7 +1,7 @@
 from web3 import Web3
 
 # 1. Connection
-w3 = Web3(Web3.HTTPProvider('https://sepolia-rollup.arbitrum.io/rpc'))
+w3 = Web3(Web3.HTTPProvider("https://sepolia-rollup.arbitrum.io/rpc"))
 print(f"Connected to Arbitrum: {w3.is_connected()}")
 
 # 2. Fix: Checksummed Address (Mandatory for web3.py)
@@ -14,29 +14,29 @@ abi = [
         "name": "isNodeAuthorized",
         "outputs": [{"name": "", "type": "bool"}],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
     },
     {
         "inputs": [{"name": "fw_hash", "type": "bytes32"}],
         "name": "isFirmwareApproved",
         "outputs": [{"name": "", "type": "bool"}],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
     },
     {
         "inputs": [{"name": "node_id", "type": "bytes32"}],
         "name": "getCounter",
         "outputs": [{"name": "", "type": "uint64"}],
         "stateMutability": "view",
-        "type": "function"
-    }
+        "type": "function",
+    },
 ]
 
 contract = w3.eth.contract(address=contract_address, abi=abi)
 
 # 4. Correct Test Data
 test_node = bytes.fromhex("11" * 32)
-test_fw = b'\x00' * 32
+test_fw = b"\x00" * 32
 
 print(f"\n--- Orthonode OHR Testing ---")
 

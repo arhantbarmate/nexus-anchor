@@ -56,3 +56,4 @@ Thumbs.db
 *.tmp
 *.wasm
 *.wat
+venv/

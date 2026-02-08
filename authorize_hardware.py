@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 1. Setup Connection
-w3 = Web3(Web3.HTTPProvider('https://sepolia-rollup.arbitrum.io/rpc'))
+w3 = Web3(Web3.HTTPProvider("https://sepolia-rollup.arbitrum.io/rpc"))
 print(f"Connected to Arbitrum: {w3.is_connected()}")
 
 # 2. Account Configuration
@@ -25,7 +25,7 @@ abi = [
         "name": "authorizeNode",
         "outputs": [],
         "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
     }
 ]
 
@@ -38,14 +38,16 @@ node_id = Web3.to_bytes(hexstr=hw_id_hex)
 print(f"Authorizing Virtual Node ID: {node_id.hex()}")
 
 # 5. Build, Sign, and Send Transaction
-tx = contract.functions.authorizeNode(node_id).build_transaction({
-    'from': admin_account.address,
-    'nonce': w3.eth.get_transaction_count(admin_account.address),
-    'gas': 2000000,
-    'maxFeePerGas': w3.to_wei(0.1, 'gwei'),
-    'maxPriorityFeePerGas': w3.to_wei(0.01, 'gwei'),
-    'chainId': 421614
-})
+tx = contract.functions.authorizeNode(node_id).build_transaction(
+    {
+        "from": admin_account.address,
+        "nonce": w3.eth.get_transaction_count(admin_account.address),
+        "gas": 2000000,
+        "maxFeePerGas": w3.to_wei(0.1, "gwei"),
+        "maxPriorityFeePerGas": w3.to_wei(0.01, "gwei"),
+        "chainId": 421614,
+    }
+)
 
 signed_tx = admin_account.sign_transaction(tx)
 tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
@@ -54,7 +56,7 @@ print(f"🚀 Transaction Sent! Hash: {tx_hash.hex()}")
 print("Waiting for confirmation on Arbitrum Sepolia...")
 receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
 
-if receipt['status'] == 1:
+if receipt["status"] == 1:
     print(f"✅ Confirmed in block: {receipt['blockNumber']}")
     print("Orthonode successfully authorized on-chain.")
 else:

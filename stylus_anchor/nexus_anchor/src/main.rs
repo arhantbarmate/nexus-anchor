@@ -1,3 +1,3 @@
 fn main() {
-// No constructor - Stylus contract uses storage initialization
+    // No constructor - Stylus contract uses storage initialization
 }

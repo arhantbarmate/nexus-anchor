@@ -884,17 +884,12 @@ This roadmap transforms a working prototype into **production-ready infrastructu
 ## APPENDIX: MILESTONE DEPENDENCIES
 
 ```mermaid
-gantt
-    title Stylus-Hardware-Anchor 12-Month Roadmap
-    dateFormat  YYYY-MM-DD
-    section Milestone 1
-    Identity Foundation (COMPLETE)    :done, m1, 2025-12-01, 2026-02-08
-    section Milestone 2
-    Security & Cryptography           :active, m2, 2026-02-09, 2026-05-08
-    section Milestone 3
-    Developer SDK & Dashboard         :m3, 2026-05-09, 2026-09-08
-    section Milestone 4
-    Mainnet Launch & Onboarding      :m4, 2026-09-09, 2027-01-08
+timeline
+    title Stylus Hardware Anchor 12-Month Roadmap
+    Milestone 1 : COMPLETE : Identity Anchor Foundation
+    Milestone 2 : Months 1-3 : Production Security & Cryptography
+    Milestone 3 : Months 4-7 : Developer SDK & Dashboard
+    Milestone 4 : Months 8-12 : Mainnet Launch & Onboarding
 ```
 
 **Critical Path:**

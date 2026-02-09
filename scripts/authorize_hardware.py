@@ -10,10 +10,10 @@ w3 = Web3(Web3.HTTPProvider("https://sepolia-rollup.arbitrum.io/rpc"))
 print(f"Connected to Arbitrum: {w3.is_connected()}")
 
 # 2. Account Configuration
-# Make sure anchor_ANCHOR_KEY is set in your .env file
-private_key = os.getenv("anchor_ANCHOR_KEY")
+# Make sure ANCHOR_HARDWARE_KEY is set in your .env file
+private_key = os.getenv("ANCHOR_HARDWARE_KEY")
 if not private_key:
-    raise ValueError("anchor_ANCHOR_KEY not found in .env")
+    raise ValueError("ANCHOR_HARDWARE_KEY not found in .env")
 
 admin_account = Account.from_key(private_key)
 contract_address = w3.to_checksum_address("0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d")

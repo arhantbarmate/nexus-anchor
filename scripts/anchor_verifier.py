@@ -4,7 +4,6 @@ from typing import Dict, Tuple
 
 from eth_utils import keccak
 
-
 # ============================================================
 # CONSTANTS (Must match firmware + contract)
 # ============================================================
@@ -16,6 +15,7 @@ anchor_RCT_DOMAIN = b"anchor_RCT_V1"  # 13 bytes
 # DATA STRUCTURES
 # ============================================================
 
+
 @dataclass
 class NodeState:
     name: str
@@ -25,6 +25,7 @@ class NodeState:
 # ============================================================
 # CANONICAL VERIFIER
 # ============================================================
+
 
 class AnchorVerifier:
     def __init__(self):
@@ -75,7 +76,9 @@ class AnchorVerifier:
         hw = self._parse_32byte_hex(receipt["hardware_identity"], "hardware_identity")
         fw = self._parse_32byte_hex(receipt["firmware_hash"], "firmware_hash")
         ex = self._parse_32byte_hex(receipt["execution_hash"], "execution_hash")
-        digest_received = self._parse_32byte_hex(receipt["receipt_digest"], "receipt_digest")
+        digest_received = self._parse_32byte_hex(
+            receipt["receipt_digest"], "receipt_digest"
+        )
 
         counter = receipt["counter"]
         if not isinstance(counter, int) or counter < 0:
@@ -114,11 +117,7 @@ class AnchorVerifier:
         # 4️⃣ Digest Reconstruction
         # ----------------------------------------------------
         expected_digest = keccak(
-            anchor_RCT_DOMAIN
-            + hw
-            + fw
-            + ex
-            + counter.to_bytes(8, "big")
+            anchor_RCT_DOMAIN + hw + fw + ex + counter.to_bytes(8, "big")
         )
 
         if expected_digest != digest_received:
@@ -165,23 +164,21 @@ if __name__ == "__main__":
     def build_receipt(counter: int):
         hw = bytes.fromhex(hw_hex[2:])
         fw = bytes.fromhex(fw_hex[2:])
-        ex = bytes.fromhex("deadbeefcafebabe000000000000000000000000000000000000000000000001")
-
-        digest = keccak(
-            anchor_RCT_DOMAIN
-            + hw
-            + fw
-            + ex
-            + counter.to_bytes(8, "big")
+        ex = bytes.fromhex(
+            "deadbeefcafebabe000000000000000000000000000000000000000000000001"
         )
 
-        return json.dumps({
-            "hardware_identity": hw_hex,
-            "firmware_hash": fw_hex,
-            "execution_hash": "0xdeadbeefcafebabe000000000000000000000000000000000000000000000001",
-            "receipt_digest": "0x" + digest.hex(),
-            "counter": counter,
-        })
+        digest = keccak(anchor_RCT_DOMAIN + hw + fw + ex + counter.to_bytes(8, "big"))
+
+        return json.dumps(
+            {
+                "hardware_identity": hw_hex,
+                "firmware_hash": fw_hex,
+                "execution_hash": "0xdeadbeefcafebabe000000000000000000000000000000000000000000000001",
+                "receipt_digest": "0x" + digest.hex(),
+                "counter": counter,
+            }
+        )
 
     print("\nRunning Security Tests...\n")
 

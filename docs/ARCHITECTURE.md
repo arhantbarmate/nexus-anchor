@@ -1,7 +1,7 @@
 # Stylus Hardware Anchor Architecture
 
 **Version:** 1.1  
-**Status:** Production Specification  
+**Status:** Technical Specification (Sepolia prototype). Mainnet deployment is out of scope for Phase 1 (current grant); planned for Phase 2 (future grant).  
 **Last Updated:** February 8, 2026
 
 ---
@@ -148,7 +148,7 @@ ohr_firmware/
 #### Contract Address
 
 - **Testnet (Sepolia):** `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`
-- **Mainnet:** TBD (post-audit)
+- **Mainnet:** Planned for Phase 2 (future grant); not in Phase 1 scope
 
 #### Storage Schema
 
@@ -183,7 +183,7 @@ pub struct anchorAnchor {
 | `revoke_node(hw_id)` | Remove hardware authorization | ~30k gas |
 | `approve_firmware(fw_hash)` | Approve firmware version | ~50k gas |
 | `revoke_firmware(fw_hash)` | Revoke firmware approval | ~30k gas |
-| `transfer_ownership(new_owner)` | Transfer admin control | ~45k gas |
+| `transfer_ownership(new_owner)` | Transfer admin control | ~45k gas (preliminary benchmark, Sepolia controlled conditions) |
 
 **Verification Functions** (Public):
 
@@ -232,30 +232,30 @@ const FW_HASH_SIZE: usize = 32;
 const EXEC_HASH_SIZE: usize = 32;
 const COUNTER_SIZE: usize = 8;
 const DIGEST_SIZE: usize = 32;
-const RECEIPT_MATERIAL_SIZE: usize = 116;  // 12 + 32 + 32 + 32 + 8
+const RECEIPT_MATERIAL_SIZE: usize = 117;  // 13 + 32 + 32 + 32 + 8
 ```
 
 #### Receipt Format Specification
 
-**Binary Structure (116 bytes total):**
+**Binary Structure (117 bytes total):**
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │  Offset │ Size │ Field          │ Description          │
 ├─────────┼──────┼────────────────┼──────────────────────┤
-│    0    │  12  │ Protocol ID    │ "anchor_RCT_V1"       │
-│   12    │  32  │ Hardware ID    │ Device fingerprint   │
-│   44    │  32  │ Firmware Hash  │ Code version binding │
-│   76    │  32  │ Execution Hash │ Computation result   │
-│  108    │   8  │ Counter        │ Replay protection    │
+│    0    │  13  │ Protocol ID    │ "anchor_RCT_V1"       │
+│   13    │  32  │ Hardware ID    │ Device fingerprint   │
+│   45    │  32  │ Firmware Hash  │ Code version binding │
+│   77    │  32  │ Execution Hash │ Computation result   │
+│  109    │   8  │ Counter        │ Replay protection    │
 ├─────────┴──────┴────────────────┴──────────────────────┤
-│  Total: 116 bytes → Keccak-256 → 32-byte receipt digest│
+│  Total: 117 bytes → Keccak-256 → 32-byte receipt digest│
 └────────────────────────────────────────────────────────┘
 ```
 
 **Field Semantics:**
 
-1. **Protocol ID (12 bytes):** Version identifier, enables protocol evolution
+1. **Protocol ID (13 bytes):** Domain tag `"anchor_RCT_V1"`; version identifier, enables protocol evolution
 2. **Hardware ID (32 bytes):** `Keccak256(eFuse MAC || chip info)` - device identity
 3. **Firmware Hash (32 bytes):** `Keccak256(compiled_binary)` - code authenticity
 4. **Execution Hash (32 bytes):** `Keccak256(input || output)` - computation commitment
@@ -297,7 +297,7 @@ FUNCTION verify_receipt(hw_id, fw_hash, exec_hash, counter, claimed_digest)
   └──────────────────────────────────────────────────────┘
   
   receipt_material = CONCAT(
-    anchor_RCT_DOMAIN,           // 12 bytes
+    anchor_RCT_DOMAIN,           // 13 bytes ("anchor_RCT_V1")
     hw_id,                      // 32 bytes
     fw_hash,                    // 32 bytes
     exec_hash,                  // 32 bytes
@@ -408,13 +408,13 @@ execution_hash = Keccak256(execution_data);
 #### 4. Receipt Digest (Canonical)
 
 ```cpp
-// Build 116-byte receipt material
-uint8_t receipt_material[116];
+// Build 117-byte receipt material
+uint8_t receipt_material[117];
 size_t offset = 0;
 
-// Domain tag (12 bytes)
-memcpy(receipt_material + offset, "anchor_RCT_V1", 12);
-offset += 12;
+// Domain tag (13 bytes, "anchor_RCT_V1")
+memcpy(receipt_material + offset, "anchor_RCT_V1", 13);
+offset += 13;
 
 // Hardware ID (32 bytes)
 memcpy(receipt_material + offset, hardware_identity, 32);
@@ -433,8 +433,8 @@ uint64_t counter_be = __builtin_bswap64(counter);
 memcpy(receipt_material + offset, &counter_be, 8);
 offset += 8;
 
-// Compute final digest
-receipt_digest = Keccak256(receipt_material);  // 116 bytes → 32 bytes
+// Compute final digest (Ethereum Keccak-256, 0x01 padding)
+receipt_digest = Keccak256(receipt_material);  // 117 bytes → 32 bytes
 ```
 
 ### Test Vectors
@@ -453,15 +453,14 @@ Output: 1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
 
 **Protocol Domain Tag:**
 ```
-Input:  "anchor_RCT_V1" (12 bytes, UTF-8)
+Input:  "anchor_RCT_V1" (13 bytes, UTF-8)
 Output: [compute and verify against firmware output]
 ```
 
 ### Implementation References
 
-**ESP32-S3:** Custom C implementation (Ethereum-compatible)
+**ESP32-S3:** Custom C implementation (Ethereum Keccak-256, 0x01 padding)
 ```c
-// Placeholder - replace with Ethereum Keccak in production
 void anchor_keccak256(const uint8_t *input, size_t len, uint8_t *output);
 ```
 
@@ -567,8 +566,8 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
                       │
                       ↓
 ┌───────────────────────────────────────────────────────┐
-│  Build Receipt Material (116 bytes)                   │
-│  "anchor_RCT_V1" || hw_id || fw || exec || counter     │
+│  Build Receipt Material (117 bytes)                   │
+│  "anchor_RCT_V1" (13B) || hw_id || fw || exec || counter │
 └─────────────────────┬─────────────────────────────────┘
                       │
                       ↓
@@ -626,7 +625,7 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
                       ↓
 ┌───────────────────────────────────────────────────────┐
 │  [STAGE 4] Digest Reconstruction                      │
-│  1. material = "anchor_RCT_V1" || hw || fw || exec || c│
+│  1. material = "anchor_RCT_V1" (13B) || hw || fw || exec || c│
 │  2. reconstructed = Keccak256(material)               │
 │  3. IF reconstructed != claimed_digest REVERT         │
 └─────────────────────┬─────────────────────────────────┘
@@ -744,7 +743,7 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
 | **Forge Result** | Fake computation output | Receipt digest verification | None (crypto secure) |
 | **Tamper Counter** | Rollback replay protection | On-chain canonical counter | NVS for optimization only |
 | **MitM Attack** | Intercept/modify receipt | End-to-end integrity (digest) | None (receipts self-authenticating) |
-| **Admin Key Compromise** | Unauthorized approvals | Multi-sig or DAO governance | Key management (medium) |
+| **Admin Key Compromise** | Unauthorized approvals | Multi-sig or DAO governance (subject to community/regulatory approval) | Key management (medium) |
 | **Smart Contract Bug** | Logic error in verification | Audits + formal verification | Implementation errors (low) |
 
 #### Defense-in-Depth Layers
@@ -784,7 +783,7 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
 
 ## Network Architecture
 
-### Current Deployment (Milestone 1 - Testnet)
+### Current Deployment (Sepolia prototype)
 
 ```
 ┌──────────────────────┐
@@ -815,7 +814,7 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
 - **Throughput:** ~1 receipt per 3 seconds (limited by serial + RPC)
 - **Cost:** Free (testnet ETH)
 
-### Production Architecture (Milestone 3 - Mainnet)
+### Target Production Architecture (Phase 2 — future grant; not in Phase 1 scope)
 
 ```
 ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
@@ -838,7 +837,7 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
                            ↓
               ┌────────────────────────┐
               │  Arbitrum One          │  ← Mainnet Layer
-              │  - Production Contract │
+              │  - Mainnet contract    │
               │  - Multi-Sig Ownership │
               │  - Event Indexing      │
               └────────────────────────┘
@@ -1295,7 +1294,7 @@ Accounting for network congestion, RPC latency:
 | **Boot + Extract ID** | 500 | ~120,000,000 | One-time per power-on |
 | **Keccak-256 (16B)** | 1 | ~240,000 | Hardware ID derivation |
 | **Keccak-256 (32B)** | 1.5 | ~360,000 | Firmware/exec hash |
-| **Keccak-256 (116B)** | 2 | ~480,000 | Receipt digest |
+| **Keccak-256 (117B)** | 2 | ~480,000 | Receipt digest |
 | **NVS Read Counter** | 5 | ~1,200,000 | Flash read |
 | **NVS Write Counter** | 10 | ~2,400,000 | Flash write + commit |
 | **JSON Serialization** | 2 | ~480,000 | Format receipt |
@@ -1561,7 +1560,7 @@ print(f"✓ Receipt verified: {tx_hash.hex()}")
 
 - [ ] **Formal Verification:** Prove correctness of verification algorithm
 - [ ] **Security Audit:** Third-party audit of Rust/Stylus code
-- [ ] **Governance:** Implement multi-sig or DAO for admin functions
+- [ ] **Governance:** Implement multi-sig or DAO for admin functions (subject to regulatory and community approval)
 - [ ] **Upgradability:** Consider proxy pattern for bug fixes
 - [ ] **Event Indexing:** Deploy subgraph for historical queries
 - [ ] **Rate Limiting:** Consider gas-based DoS protection
@@ -1571,7 +1570,7 @@ print(f"✓ Receipt verified: {tx_hash.hex()}")
 
 - [ ] **Secure Boot:** Enable Secure Boot V2 for code signing
 - [ ] **Flash Encryption:** Encrypt firmware in flash
-- [ ] **Keccak Implementation:** Replace placeholder with Ethereum-compatible library
+- [x] **Keccak Implementation:** Ethereum-compatible Keccak-256 (0x01 padding) integrated
 - [ ] **OTA Updates:** Implement secure over-the-air updates
 - [ ] **Tamper Detection:** Monitor NVS corruption
 - [ ] **Debug Disabled:** Disable JTAG/serial debugging in production
@@ -1590,7 +1589,7 @@ print(f"✓ Receipt verified: {tx_hash.hex()}")
 
 | Limitation | Impact | Mitigation |
 |------------|--------|------------|
-| **Keccak Placeholder** | ESP32 uses SHA3-256, not Ethereum Keccak | Replace with true Keccak before production |
+| **Keccak** | Ethereum Keccak-256 (0x01 padding) | Baseline parity achieved across firmware, Python, Stylus |
 | **No TEE** | Firmware execution not isolated | Use Secure Boot + Flash Encryption |
 | **Counter Overflow** | uint64 max = 18 quintillion | Not practical concern (1B/sec = 584 years) |
 | **eFuse Cloning** | Manufacturing compromise possible | Rely on multiple devices for redundancy |
@@ -1663,7 +1662,7 @@ stylus-hardware-anchor/
 │   ├── src/
 │   │   ├── main.cpp                  # Main firmware
 │   │   ├── anchor_ohr_esp32_fixed.cpp # Production implementation
-│   │   └── keccak256.cpp             # Crypto (placeholder)
+│   │   └── keccak256.cpp             # Ethereum Keccak-256 (0x01)
 │   ├── include/
 │   │   └── anchor_protocol.h          # API header
 │   └── platformio.ini                # Build config
@@ -1699,7 +1698,7 @@ stylus-hardware-anchor/
 
 ---
 
-**Document Status:** Production Specification  
+**Document Status:** Technical Specification  
 **Classification:** Public  
 **Last Updated:** February 8, 2026  
 **Maintainer:** Stylus Hardware Anchor Development Team  

@@ -76,9 +76,9 @@ static void anchor_keccak256(const uint8_t *input, size_t len, uint8_t *output) 
  * Use ESP32-S2/S3/C3 with eFuse-backed OPTIONAL_UNIQUE_ID for non-clonability
  */
 static esp_err_t anchor_get_chip_id(uint8_t chip_id[16]) {
-#if 0 || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
-    // ESP32-S2/S3/C3 have eFuse-backed OPTIONAL_UNIQUE_ID (production-grade)
-    ESP_LOGI(TAG, "✓ Using eFuse-backed unique ID (production-grade)");
+#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
+    // ESP32-S2/S3/C3 have eFuse-backed OPTIONAL_UNIQUE_ID
+    ESP_LOGI(TAG, "✓ Using eFuse-backed unique ID");
     esp_efuse_read_field_blob(ESP_EFUSE_OPTIONAL_UNIQUE_ID, chip_id, 128);
     return ESP_OK;
 #else
@@ -163,7 +163,7 @@ static esp_err_t anchor_get_security_state_fingerprint(uint8_t digest[32]) {
  * Hardware Identity Derivation (FROZEN PROTOCOL)
  * 
  * hardware_identity = keccak256(
- *     anchor_HWI_DOMAIN     || // 12 bytes - Domain separation
+ *     anchor_HWI_DOMAIN     || // 13 bytes - Domain separation
  *     chip_unique_id       || // 16 bytes - Device uniqueness
  *     secure_boot_enabled  || //  1 byte  - Security state
  *     flash_encrypt_enabled|| //  1 byte  - Security state
@@ -186,7 +186,7 @@ static esp_err_t anchor_derive_hardware_identity(uint8_t hardware_identity[32]) 
     
     ESP_LOGI(TAG, "Deriving hardware identity...");
     
-    // 1. Domain Tag (12 bytes) - prevents cross-protocol hash collisions
+    // 1. Domain Tag (13 bytes) - prevents cross-protocol hash collisions
     memcpy(identity_material + offset, anchor_HWI_DOMAIN, anchor_HWI_DOMAIN_LEN);
     offset += anchor_HWI_DOMAIN_LEN;
     
@@ -337,7 +337,7 @@ static esp_err_t anchor_increment_counter(uint64_t *new_counter) {
  * Receipt format (FROZEN PROTOCOL):
  * 
  * receipt_digest = keccak256(
- *     anchor_RCT_DOMAIN     || // 12 bytes - Domain separation (different from HWI)
+ *     anchor_RCT_DOMAIN     || // 13 bytes - Domain separation (different from HWI)
  *     hardware_identity    || // 32 bytes - Static device ID
  *     firmware_hash        || // 32 bytes - Firmware version binding
  *     execution_hash       || // 32 bytes - Computation result
@@ -483,8 +483,8 @@ static void print_security_status(void) {
     printf("║ Chip: %-55s ║\n", CONFIG_IDF_TARGET);
     
     // Hardware identity source
-#if 0 || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
-    printf("║ Unique ID: ✓ eFuse-backed (production-grade)                 ║\n");
+#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
+    printf("║ Unique ID: ✓ eFuse-backed                                ║\n");
 #else
     printf("║ Unique ID: ⚠️  MAC-based (development only)                   ║\n");
 #endif

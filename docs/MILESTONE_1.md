@@ -4,7 +4,7 @@
 This milestone establishes the foundational hardware-to-blockchain link for the Stylus Hardware Anchor. We create a cryptographic binding between physical ESP32-S3 silicon and on-chain state on Arbitrum, enabling hardware-based permissioning and identity verification.
 
 ---------------------------------------------------------------------
-{T} STATUS: ✅ COMPLETE (Milestone scope)
+{T} STATUS: Prototype deployed (Sepolia); Milestone 1 hardening pending approval
 ---------------------------------------------------------------------
 
 ## Deliverables
@@ -47,16 +47,16 @@ This milestone establishes the foundational hardware-to-blockchain link for the 
 - After authorization transaction: `is_node_authorized(hw_id)` returns `True` ✅
 
 ### 4. Verification Protocol ✅
-**Receipt Format:** 116 bytes
+**Receipt Format:** 117 bytes (domain tag 13 bytes: `"anchor_RCT_V1"`). Keccak-256 uses Ethereum-compatible padding (0x01).
 
 | Field | Size | Description |
 |-------|------|-------------|
-| Protocol ID | 12 bytes | "anchor_RCT_V1" |
+| Protocol ID | 13 bytes | "anchor_RCT_V1" |
 | Hardware ID | 32 bytes | Keccak-256(eFuse data) |
 | Firmware Hash | 32 bytes | Keccak-256(firmware binary) |
 | Execution Hash | 32 bytes | Keccak-256(computation result) |
 | Counter | 8 bytes | Monotonic counter (Big-Endian) |
-| **Total** | **116 bytes** | **→ Keccak-256 → 32-byte digest** |
+| **Total** | **117 bytes** | **→ Keccak-256 → 32-byte digest** |
 
 **Verification Stages:**
 1. **Identity Check:** `authorized_nodes[hw_id] == true`
@@ -223,7 +223,7 @@ stylus-hardware-anchor/
 ```mermaid
 timeline
     title anchor Roadmap
-    Milestone 1 : COMPLETE : Identity Binding
+    Milestone 1 : Pending approval : Identity Binding
     Milestone 2 : ACTIVE : Firmware Attestation
     Milestone 3 : PLANNED : Multi-Node Orchestration
 ```

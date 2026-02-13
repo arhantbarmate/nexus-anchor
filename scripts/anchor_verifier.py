@@ -1,8 +1,8 @@
 """
 anchorAnchor Canonical Receipt Verifier
-Production-Grade Implementation
+Prototype anchor implementation.
 
-This is the "law of physics" that enforces network sovereignty.
+This is the canonical verifier that enforces receipt integrity.
 Even if firmware leaks, middleware compromised, or attacker knows the protocol,
 they CANNOT anchor to chain without passing these checks.
 
@@ -203,7 +203,7 @@ class anchorVerifier:
 
         Formula (MUST match firmware):
         receipt_digest = keccak256(
-            anchor_RCT_V1        ||  // 12 bytes - Domain tag
+            anchor_RCT_V1        ||  // 13 bytes - Domain tag ("anchor_RCT_V1")
             hardware_identity   ||  // 32 bytes - Device ID
             firmware_hash       ||  // 32 bytes - Firmware binding
             execution_hash      ||  // 32 bytes - Computation result

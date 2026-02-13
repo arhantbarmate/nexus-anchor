@@ -1,12 +1,12 @@
 # Stylus Hardware Anchor (SHA)
-## Complete Setup & Testing Guide
+## Setup & Testing Guide
 ### Zero to Hero — Windows | macOS | Linux
 
 ---
 
 ## 📋 Introduction
 
-Welcome to the Stylus Hardware Anchor (SHA) complete deployment guide. This document will take you from zero knowledge to successfully deploying and testing hardware verification on the Arbitrum Sepolia testnet.
+Welcome to the Stylus Hardware Anchor (SHA) deployment guide. This document walks you through deploying and testing hardware verification on the Arbitrum Sepolia testnet (prototype deployment).
 
 ### What You'll Learn:
 
@@ -423,16 +423,15 @@ You can also view the contract directly:
 
 ---
 
-### Verification Hash Mismatch (Expected in Milestone 1)
+### Verification Hash Mismatch
 
 **Problem:** "Digest Mismatch" when verifying receipts
 
-**This is EXPECTED behavior in Milestone 1:**
+**If you see a mismatch:**
 
-- ESP32 firmware uses SHA3 placeholder hashing
-- Python script uses Ethereum Keccak-256
-- This intentional mismatch demonstrates the verification system is working correctly
-- **Goal:** See "Hardware Authorized" message on blockchain — verification alignment comes in Milestone 2
+- Ensure domain tag is **13 bytes** (`"anchor_RCT_V1"`) and receipt material is **117 bytes**.
+- Keccak-256 must use **Ethereum-compatible padding (0x01)** everywhere (firmware, Python, Stylus).
+- Baseline cryptographic parity has been achieved across the stack; report persistent mismatches as bugs.
 
 ---
 
@@ -493,7 +492,7 @@ The next milestone will introduce:
 - Keccak-256 alignment between firmware and verification
 - Full cryptographic proof generation and validation
 - Enhanced security features and anti-tampering mechanisms
-- Gas optimization for production deployment
+- Gas optimization for future mainnet deployment
 
 ---
 
@@ -516,11 +515,7 @@ Found a bug? Have a suggestion? We'd love to hear from you:
 
 ### Acknowledgments
 
-This project is supported by:
-
-- **Arbitrum Foundation** — Grant funding via Questbook
-- **Offchain Labs** — Stylus tooling and technical support
-- **The Arbitrum Community** — Feedback and testing
+This project has been submitted for Arbitrum ecosystem grant consideration. No official endorsement or funding has been confirmed at this time.
 
 ---
 

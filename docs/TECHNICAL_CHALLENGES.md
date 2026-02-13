@@ -1,6 +1,6 @@
 # Technical Challenges & Solutions — Stylus Hardware Anchor
 
-This document outlines the critical engineering hurdles encountered during the development of Milestone 1, from initial environment setup to on-chain verification.
+This document outlines the critical engineering hurdles encountered during prototype development, from initial environment setup to on-chain verification.
 
 ---
 
@@ -12,7 +12,7 @@ This document outlines the critical engineering hurdles encountered during the d
 
 **Solution:** Migrated the entire build environment to **WSL 1**. Unlike WSL 2, which uses a virtualized network bridge, WSL 1 shares the native Windows network stack, allowing the build tools to bypass virtual NIC bottlenecks and correctly utilize the system's internet connection.
 
-**Resolution Status:** ✅ Fully resolved and validated in Milestone 1.
+**Resolution Status:** ✅ Resolved; baseline parity achieved.
 
 ---
 
@@ -24,7 +24,7 @@ This document outlines the critical engineering hurdles encountered during the d
 
 **Solution:** Bypassed the Windows GUI entirely for build tasks. Successfully implemented a **Native Ubuntu Build Flow** where all `pio run` commands are executed directly in the Linux shell, ensuring Linux-native pathing and permission headers.
 
-**Resolution Status:** ✅ Fully resolved and validated in Milestone 1.
+**Resolution Status:** ✅ Resolved; baseline parity achieved.
 
 ---
 
@@ -43,7 +43,7 @@ ruint = { git = "https://github.com/recmo/uint", tag = "v1.12.3" }
 
 This forced the project to use the stable v1.12.3 version, restoring the build.
 
-**Resolution Status:** ✅ Fully resolved and validated in Milestone 1.
+**Resolution Status:** ✅ Resolved; baseline parity achieved.
 
 ---
 
@@ -55,7 +55,7 @@ This forced the project to use the stable v1.12.3 version, restoring the build.
 
 **Solution:** Developed and integrated a custom **Keccak-256 implementation** on the ESP32-S3 that specifically uses the Ethereum-standard padding, ensuring 1:1 parity with the blockchain verifier.
 
-**Resolution Status:** ✅ Fully resolved and validated in Milestone 1.
+**Resolution Status:** ✅ Resolved; baseline parity achieved.
 
 ---
 
@@ -84,7 +84,7 @@ pub fn get_counter(&self, node_id: FixedBytes<32>) -> u64 {
 }
 ```
 
-**Resolution Status:** ✅ Fully resolved and validated in Milestone 1.
+**Resolution Status:** ✅ Resolved; baseline parity achieved.
 
 ---
 
@@ -101,7 +101,7 @@ git config --global url."https://".insteadOf git://
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 ```
 
-**Resolution Status:** ✅ Fully resolved and validated in Milestone 1.
+**Resolution Status:** ✅ Resolved; baseline parity achieved.
 
 ---
 

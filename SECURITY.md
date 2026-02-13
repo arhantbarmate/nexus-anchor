@@ -60,14 +60,14 @@ Stylus Hardware Anchor implements multiple layers of security:
 ### Operational Security
 - **No PII collection:** Zero personal data in receipts or on-chain
 - **Open source:** Full transparency for community review
-- **Testnet deployment:** Extensive testing before mainnet
+- **Testnet deployment:** Phase 1 is testnet-only (Arbitrum Sepolia); mainnet planned for Phase 2 (future grant)
 - **Upgrade path:** Designed for secure contract migration
 
 ## 📚 Security Best Practices for Users
 
 ### Node Operators
 1. **Secure your private keys** - Never commit to version control
-2. **Use hardware wallets** for production deployments
+2. **Use hardware wallets** for mainnet or production deployments
 3. **Verify firmware hashes** before approval on-chain
 4. **Monitor counter values** for unexpected jumps
 5. **Keep firmware updated** to latest secure version
@@ -94,19 +94,18 @@ We recognize security researchers who responsibly disclose vulnerabilities:
 
 ## 📜 Security Audit Status
 
-**Current Status:** Pre-audit (Milestone 1)
+**Current Status:** Phase 1 security hardening pending formal approval. Testnet-only (Sepolia); no production deployment in Phase 1 scope.
 
-**Planned Audits:**
-- Smart contract audit scheduled for Q2 2026
-- Cryptographic implementation review in progress
-- Hardware security assessment planned
+**Audit positioning:**
+- Optional independent review may occur in Phase 1 (post–Milestone 1 unlock; not required for Phase 1 completion).
+- Professional third-party audit is deferred to Phase 2 (future grant application).
 
 ## 🚨 Known Limitations
 
 **Current Known Issues:**
 - Counter overflow after 2^64 receipts (cosmically unlikely)
 - Single-threaded receipt verification (planned batch support in Milestone 2)
-- ESP32 physical tampering (hardware security module planned for Milestone 3)
+- ESP32 physical tampering (hardware security module planned for Phase 2 — future grant)
 
 ## 💬 Security Contact
 
@@ -117,4 +116,4 @@ We recognize security researchers who responsibly disclose vulnerabilities:
 ---
 
 **Last Updated:** February 2026  
-**Version:** 1.0 (Milestone 1)
+**Version:** 1.0 (prototype; Milestone 1 hardening pending)

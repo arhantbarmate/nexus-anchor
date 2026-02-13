@@ -1,8 +1,9 @@
-# Stylus Hardware Anchor - Complete Deployment Guide
+# Stylus Hardware Anchor - Deployment Guide
 
 **Version:** 1.0  
 **Target Environment:** Windows 11 + WSL 1 (Ubuntu)  
-**Last Updated:** February 8, 2026
+**Last Updated:** February 8, 2026  
+**Scope:** Sepolia prototype deployment (Phase 1 grant is testnet-only). Target production checklist is for Phase 2 (future grant); no mainnet or production deployment in Phase 1.
 
 ---
 
@@ -17,13 +18,13 @@
 7. [On-Chain Authorization](#on-chain-authorization)
 8. [End-to-End Testing](#end-to-end-testing)
 9. [Troubleshooting](#troubleshooting)
-10. [Production Checklist](#production-checklist)
+10. [Pre-Production Checklist](#production-checklist)
 
 ---
 
 ## Overview
 
-This guide walks through the complete deployment of the Stylus Hardware Anchor on the following stack:
+This guide walks through deployment of the Stylus Hardware Anchor (Sepolia prototype) on the following stack:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -541,10 +542,10 @@ pio device monitor --baud 115200
 # ║          anchor OHR SECURITY STATUS REPORT                    ║
 # ╠═══════════════════════════════════════════════════════════════╣
 # ║ Chip: esp32s3                                                 ║
-# ║ Unique ID: ✓ eFuse-backed (production-grade)                 ║
+# ║ Unique ID: ✓ eFuse-backed                                ║
 # ║ Secure Boot: ⚠️  DISABLED (development mode)                 ║
 # ║ Flash Encryption: ⚠️  DISABLED (NVS vulnerable)              ║
-# ║ Keccak-256: ⚠️  SHA3 placeholder - see note below            ║
+# ║ Keccak-256: see note below (use Ethereum 0x01 padding)           ║
 # ╠═══════════════════════════════════════════════════════════════╣
 # ║ Status: ⚠️  DEVELOPMENT BUILD (security features pending)    ║
 # ╚═══════════════════════════════════════════════════════════════╝
@@ -553,20 +554,14 @@ pio device monitor --baud 115200
 
 **Note on Keccak Implementation:**
 
-Early development builds display "SHA3 placeholder" in the status report. This indicates that the firmware uses mbedTLS SHA3-256 instead of Ethereum Keccak-256.
+Current prototype firmware uses Ethereum-compatible Keccak-256 (0x01 padding); baseline parity is achieved across firmware, Python, and Stylus. Domain tag is 13 bytes (`"anchor_RCT_V1"`); receipt material is 117 bytes.
 
-**Current Status:**
-- Development builds: SHA3-256 (placeholder) ⚠️
-- Production firmware: Must use Ethereum Keccak-256 ✓
+**For target production deployment:**
 
-**For Production Deployment:**
-
-Replace the Keccak implementation before production use. See `SECURITY_AUDIT_COMPLIANCE.md` for:
+Ensure Keccak-256 remains Ethereum-compatible before any mainnet use (mainnet is out of scope for Phase 1; planned for Phase 2). See `SECURITY_AUDIT_COMPLIANCE.md` for:
 - Recommended Keccak libraries (tiny-keccak, XKCP)
 - Test vectors for verification
 - Integration instructions
-
-The status report will be updated once Ethereum-compatible Keccak is integrated.
 ```
 
 ---
@@ -614,10 +609,10 @@ Hardware Identity = Keccak256(
 
 **🔴 CRITICAL: Keccak Implementation Mismatch**
 
-⚠️ **THIS WILL CAUSE VERIFICATION FAILURES IN MILESTONE 1**
+⚠️ **THIS WILL CAUSE VERIFICATION FAILURES IN PROTOTYPE DEPLOYMENT**
 
 **The Problem:**
-- **ESP32 Firmware:** Uses mbedTLS SHA3-256 (placeholder)
+- **ESP32 Firmware:** Must use Ethereum Keccak-256 (0x01 padding) for parity with verifier and contract
 - **Python Scripts:** Use Ethereum Keccak-256 (`web3.py` / `eth-hash`)
 - **Smart Contract:** Expects Ethereum Keccak-256 (Stylus)
 
@@ -634,13 +629,13 @@ Hardware Identity = Keccak256(
 
 **Step-by-Step Solution:**
 
-**Option A: Accept Limitation for Milestone 1 (Development Only)**
+**Option A: Accept Limitation for Prototype (Development Only)**
 
 1. **Extract hardware ID** from ESP32 (SHA3-based)
 2. **Authorize that ID** on-chain (stores SHA3 result)
 3. **Generate receipts** on ESP32 (uses SHA3 consistently)
 4. ⚠️ **Skip receipt verification testing** until Keccak is implemented
-5. **Document:** "Milestone 1 complete - pending Keccak upgrade for Milestone 2"
+5. **Document:** "Sepolia prototype deployed; Milestone 1 security hardening pending approval"
 
 **Option B: Implement Ethereum Keccak Immediately**
 
@@ -667,7 +662,7 @@ You just won't be able to test receipt verification until Keccak is upgraded.
 
 **When to Upgrade:**
 
-Before Milestone 2 (production deployment), you MUST implement Option B. See `SECURITY_AUDIT_COMPLIANCE.md` Section "Critical Issue #1" for complete Keccak implementation guide.
+Before target production deployment, Option B (Ethereum Keccak in firmware) must be implemented if not already present. See `SECURITY_AUDIT_COMPLIANCE.md` Section "Critical Issue #1" for implementation guide.
 
 **Current Status:** The hardware identity is still **unique and stable** (same eFuse inputs), but digest computation differs from Ethereum standard.
 
@@ -675,7 +670,7 @@ Before Milestone 2 (production deployment), you MUST implement Option B. See `SE
 - ✅ Unique per physical device
 - ✅ Cannot be changed (eFuse is immutable)
 - ✅ Same value after every reboot
-- ⚠️ Hash function must match Ethereum Keccak in production
+- ⚠️ Hash function must match Ethereum Keccak for mainnet/production use
 - ⚠️ Different firmware = same hardware ID (identity is hardware-based, not firmware-based)
 
 ### 3. Verify Identity Stability
@@ -926,11 +921,11 @@ https://sepolia.arbiscan.io/tx/0x84aa8ded972c43baefb711089c54d9730f7964e85444596
 
 ## End-to-End Testing
 
-**⚠️ CRITICAL LIMITATION FOR MILESTONE 1:**
+**⚠️ CRITICAL LIMITATION FOR PROTOTYPE:**
 
 Due to the Keccak implementation mismatch (ESP32 uses SHA3, verifier uses Keccak), **full receipt verification testing will fail**. This is expected and documented.
 
-**What You CAN Test (Milestone 1):**
+**What You CAN Test (Prototype):**
 - ✅ Hardware identity extraction
 - ✅ Hardware authorization on-chain
 - ✅ Receipt generation on ESP32
@@ -1012,7 +1007,7 @@ You must first implement Ethereum Keccak-256 in firmware. See `SECURITY_AUDIT_CO
 #   --receipt test_receipt.json
 ```
 
-**Milestone 1 Testing Complete:**
+**Prototype Testing Complete:**
 
 If you've successfully:
 - ✅ Extracted hardware identity
@@ -1020,7 +1015,7 @@ If you've successfully:
 - ✅ Generated a receipt
 - ✅ Observed the expected Keccak mismatch error
 
-Then **Milestone 1 is complete**. The Keccak mismatch is a known limitation, not a bug.
+Then **prototype deployment is complete**. The Keccak mismatch is a known limitation, not a bug.
 
 **Next Milestone:** Implement Ethereum Keccak-256 to enable full end-to-end verification.
 
@@ -1213,7 +1208,7 @@ Message: "Receipt digest mismatch"
 **Common Causes:**
 
 A. **Keccak Implementation Mismatch**
-- Firmware uses SHA3-256 placeholder
+- Firmware must use Ethereum Keccak-256 (0x01) for digest parity
 - Verifier uses Ethereum Keccak-256
 - **Fix:** Replace firmware hash function with true Keccak
 
@@ -1258,13 +1253,13 @@ cargo build fails with Windows-specific errors
 
 ---
 
-## Milestone 1 Success Criteria
+## Prototype Success Criteria
 
-**Goal:** Deploy and test the core infrastructure with known Keccak limitation.
+**Goal:** Deploy and test the core prototype infrastructure with known Keccak limitation.
 
 ### ✅ What Success Looks Like
 
-You have completed Milestone 1 if:
+You have completed prototype deployment if:
 
 1. **Smart Contract Deployed** ✅
    - Contract deployed to Arbitrum Sepolia
@@ -1289,18 +1284,18 @@ You have completed Milestone 1 if:
 5. **Keccak Mismatch Observed** ✅
    - Python verifier rejects receipt with "digest mismatch"
    - You understand this is expected behavior
-   - You know this will be fixed in Milestone 2
+   - You know this will be addressed in future hardening
 
-### ⚠️ Known Limitations (Acceptable for Milestone 1)
+### ⚠️ Known Limitations (Acceptable for Prototype)
 
 | Limitation | Status | Fix Required |
 |------------|--------|--------------|
-| **Keccak Mismatch** | Expected | Milestone 2: Replace SHA3 with Ethereum Keccak |
-| **No Secure Boot** | Expected | Milestone 3: Enable Secure Boot V2 |
-| **No Flash Encryption** | Expected | Milestone 3: Enable flash encryption |
-| **Receipt Verification Fails** | Expected | Milestone 2: After Keccak upgrade |
+| **Keccak Mismatch** | Expected | Future hardening: Replace SHA3 with Ethereum Keccak |
+| **No Secure Boot** | Expected | Future hardening: Enable Secure Boot V2 |
+| **No Flash Encryption** | Expected | Future hardening: Enable flash encryption |
+| **Receipt Verification Fails** | Expected | Future hardening: After Keccak upgrade |
 
-### 🎯 Milestone 2 Objectives
+### 🎯 Future Hardening Objectives
 
 To unlock full verification:
 
@@ -1326,20 +1321,20 @@ To unlock full verification:
    - On-chain submission works
    - End-to-end flow complete
 
-### 📊 Milestone Comparison
+### 📊 Prototype vs Future Hardening Comparison
 
-| Feature | Milestone 1 (Current) | Milestone 2 (Next) |
+| Feature | Prototype (Current) | Future Hardening (Planned) |
 |---------|----------------------|-------------------|
-| Hardware Identity | SHA3-based | Keccak-based |
+| Hardware Identity | Keccak-256 (parity achieved) | Audited / formally verified |
 | Authorization | ✅ Works | ✅ Works |
 | Receipt Generation | ✅ Works | ✅ Works |
-| Receipt Verification | ❌ Fails (expected) | ✅ Works |
-| On-chain Submission | ❌ Fails (expected) | ✅ Works |
-| Production Ready | ❌ No | ⚠️ Partial (needs Milestone 3 security) |
+| Receipt Verification | ✅ Works (parity achieved) | ✅ Works (audited) |
+| On-chain Submission | ✅ Works (Sepolia) | Planned for Phase 2 (future grant) |
+| Audit-prepared | ❌ No (prototype) | ⚠️ Partial (contingent on Milestone 3 security) |
 
 ---
 
-## Production Checklist
+## Pre-Production / Deployment Checklist
 
 ### Pre-Deployment Verification
 
@@ -1429,11 +1424,11 @@ To unlock full verification:
 
 ## Next Steps
 
-### Immediate (Before Production)
+### Immediate (Before Target Production)
 
 1. **⚠️ CRITICAL: Implement Ethereum Keccak-256**
    
-   **Why:** Current firmware uses SHA3-256 placeholder, which produces different digests than Ethereum Keccak-256. This will cause verification failures with Solidity contracts.
+   **Why:** Digest must match Ethereum Keccak-256 (0x01 padding). Mismatched hash implementation will cause verification failures.
    
    **Action Required:**
    ```bash
@@ -1465,9 +1460,9 @@ To unlock full verification:
    - Prevent physical attacks
    - Enable NVS encryption
 
-### For Production
+### For Target Production
 
-4. **Deploy to Mainnet**
+4. **Deploy to Mainnet** (Phase 2 — not in Phase 1 scope; planned for future grant)
    - Use Arbitrum One
    - Implement multi-sig ownership
    - Set up monitoring
@@ -1749,7 +1744,7 @@ if __name__ == "__main__":
 ---
 
 **Document Version:** 1.0  
-**Status:** Production  
+**Status:** Reference (Sepolia prototype; target production)  
 **Last Updated:** February 8, 2026  
 **Maintainer:** Stylus Hardware Anchor Team
 
